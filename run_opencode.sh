@@ -1,0 +1,1 @@
+docker compose -f docker-compose.cuda-turbo.yml --profile tools run --rm opencode

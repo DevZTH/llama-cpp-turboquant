@@ -1,0 +1,20 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "llama-cpp/Qwen3.6-35B-A3B-UD-IQ4_XS",
+  "small_model": "llama-cpp/Qwen3.6-35B-A3B-UD-IQ4_XS",
+  "provider": {
+    "llama-cpp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama.cpp TurboQuant",
+      "options": {
+        "baseURL": "http://llama-server:8080/v1",
+        "apiKey": "llama-cpp"
+      },
+      "models": {
+        "Qwen3.6-35B-A3B-UD-IQ4_XS": {
+          "name": "Qwen3.6 35B A3B IQ4_XS"
+        }
+      }
+    }
+  }
+}

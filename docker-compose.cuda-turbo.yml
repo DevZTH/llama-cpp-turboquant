@@ -1,0 +1,81 @@
+services:
+  llama-server:
+    build:
+      context: .
+      dockerfile: docker/cuda-turbo/Dockerfile
+      args:
+        LLAMA_BIN_DIR: docker/cuda-turbo/runtime-bin
+    image: llama-cpp-turboquant:cuda-runtime
+    container_name: llama-cpp-turboquant
+    restart: unless-stopped
+    gpus: all
+    ports:
+      - "8080:8080"
+    volumes:
+      - /home/devz/models:/models:ro
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      CUDA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-0}"
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --n-gpu-layers
+      - "999"
+      - --n-cpu-moe
+      - "35"
+      - --no-mmap
+      - --ctx-size
+      - "131072"
+      - --flash-attn
+      - "on"
+      - --cache-type-k
+      - turbo4
+      - --cache-type-v
+      - turbo3
+      - --model
+      - /models/Qwen3.6-35B-A3B-UD-IQ4_XS.gguf
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: llama-open-webui
+    restart: unless-stopped
+    depends_on:
+      - llama-server
+    ports:
+      - "3000:8080"
+    volumes:
+      - open-webui-data:/app/backend/data
+    environment:
+      ENABLE_OLLAMA_API: "false"
+      ENABLE_OPENAI_API: "true"
+      OPENAI_API_BASE_URL: http://llama-server:8080/v1
+      OPENAI_API_KEY: llama-cpp
+      WEBUI_AUTH: "false"
+
+  opencode:
+    build:
+      context: .
+      dockerfile: docker/opencode/Dockerfile
+    image: llama-cpp-turboquant:opencode
+    container_name: llama-opencode
+    profiles:
+      - tools
+    depends_on:
+      - llama-server
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - ./docker/opencode:/root/.config/opencode:ro
+      - opencode-data:/root/.local/share/opencode
+    environment:
+      OPENCODE_CONFIG: /root/.config/opencode/opencode.json
+      NO_COLOR: "0"
+
+volumes:
+  open-webui-data:
+  opencode-data:
